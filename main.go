@@ -57,15 +57,28 @@ func deleteBottleById(w http.ResponseWriter, r *http.Request) {
     }
 }
 
+func createBottle(w http.ResponseWriter, r *http.Request) {
+    fmt.Println("Endpoint Hit: createBottle")
+    w.Header().Set("Content-Type", "application/json")
+    params := mux.Vars(r)
+
+    for index, item := range bottles {
+        if item.Id == params["id"] {
+            json.NewEncoder(w).Encode(item)
+            bottles = append(bottles[:index], bottles[index+1:]...)
+            return
+        }
+    }
+}
 
 func handleRequests() {
     // creates a new instance of a mux router
     myRouter := mux.NewRouter().StrictSlash(true)
     // replace http.HandleFunc with myRouter.HandleFunc
     myRouter.HandleFunc("/", homePage).Methods("GET");
-    myRouter.HandleFunc("bottles/all", returnAllBottles).Methods("GET")
-    myRouter.HandleFunc("bottles/{id}", returnBottleById).Methods("GET")
-    myRouter.HandleFunc("bottles/{id}", deleteBottleById).Methods("DELETE")
+    myRouter.HandleFunc("/bottles/all", returnAllBottles).Methods("GET")
+    myRouter.HandleFunc("/bottles/{id}", returnBottleById).Methods("GET")
+    myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
     // finally, instead of passing in nil, we want
     // to pass in our newly created router as the second
     // argument
