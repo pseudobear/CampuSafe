@@ -179,7 +179,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/", homePage).Methods("GET")
 	myRouter.HandleFunc("/bottles/all", returnAllBottles).Methods("GET")
 	myRouter.HandleFunc("/bottles/{id}", returnBottleById).Methods("GET")
-	myRouter.HandleFunc("bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
+	myRouter.HandleFunc("/bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
