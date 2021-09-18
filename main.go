@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -18,11 +19,22 @@ type Bottle struct {
 	Content string   `json:"Content"`
 }
 
+type Incident struct {
+	Account  string `json:"Account"`
+	Id       string `json:"Id"`
+	Time     string `json:"Time"`
+	Type     string `json:"Type"`
+	Location string `json:"Location"`
+	Content  string `json:"Content"`
+}
+
 // let's declare a global Articles array
 // that we can then populate in our main function
 // to simulate a database
 var bottles []Bottle
-var idCounter int
+var incidents []Incident
+var bottlesIdCounter int
+var incidentsIdCounter int
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the HomePage!")
@@ -109,8 +121,8 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var bottle Bottle
 	json.NewDecoder(r.Body).Decode(&bottle)
-	bottle.Id = strconv.Itoa(idCounter)
-	idCounter++
+	bottle.Id = strconv.Itoa(bottlesIdCounter)
+	bottlesIdCounter++
 	bottles = append(bottles, bottle)
 	json.NewEncoder(w).Encode(bottle)
 }
@@ -138,6 +150,28 @@ func loginAuth(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 }
 
+func createIncidentReport(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: createBottle")
+	w.Header().Set("Content-Type", "application/json")
+	var incident Incident
+	params := mux.Vars(r)
+
+	json.NewDecoder(r.Body).Decode(&incident)
+
+	givenTime, ok := params["time"]
+	if ok {
+		incident.Time = givenTime
+	} else {
+		incident.Time = time.Now().String()
+	}
+
+	incident.Id = strconv.Itoa(incidentsIdCounter)
+	incidentsIdCounter++
+
+	incidents = append(incidents, incident)
+	json.NewEncoder(w).Encode(incident)
+}
+
 func handleRequests() {
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -149,6 +183,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
+	myRouter.HandleFunc("/incident", createIncidentReport).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", updateBottle).Methods("PUT")
 	// finally, instead of passing in nil, we want
 	// to pass in our newly created router as the second
@@ -158,7 +193,7 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
-	idCounter = 2
+	bottlesIdCounter = 2
 	bottles = []Bottle{
 		Bottle{Id: "0", Title: "example", Tag: []string{"10"}, Content: "hello world"},
 		Bottle{Id: "1", Title: "example", Tag: []string{"10", "20"}, Content: "hello world!"},
