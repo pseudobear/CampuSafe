@@ -49,11 +49,18 @@ func returnRandomBottle(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
 	matchingBottles := []Bottle{}
-	for _, item := range bottles {
-		if stringExists(params["tag"], item.Tag) {
-			matchingBottles = append(matchingBottles, item)
+	val, ok := params["tag"]
+	if ok {
+		for _, item := range bottles {
+			if stringExists(val, item.Tag) {
+				matchingBottles = append(matchingBottles, item)
+			}
 		}
+	} else {
+		json.NewEncoder(w).Encode(bottles[rand.Intn(len(bottles)+1)])
+		return
 	}
+
 	min := 0
 	max := len(matchingBottles)
 	if max == min {
