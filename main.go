@@ -6,6 +6,7 @@ import (
 	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -100,8 +101,8 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: createBottle")
 	w.Header().Set("Content-Type", "application/json")
 	var bottle Bottle
-	json.NewDecoder(r.body).Decode(&bottle)
-	bottle.Id = idCounter
+	json.NewDecoder(r.Body).Decode(&bottle)
+	bottle.Id = strconv.Itoa(idCounter)
 	idCounter++
 	bottles = append(bottles, bottle)
 	json.NewEncoder(w).Encode(bottle)
@@ -119,7 +120,7 @@ func updateBottle(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	var bottle Bottle
-	json.NewDecoder(r.body).Decode(&bottle)
+	json.NewDecoder(r.Body).Decode(&bottle)
 	bottle.Id = params["id"]
 	bottles = append(bottles, bottle)
 	json.NewEncoder(w).Encode(bottle)
