@@ -107,8 +107,8 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(bottle)
 }
 
-func updateBottle(w http.ReponseWriter, r *httpRequest) {
-	fmt.println("Endpoint Hit: updateBottle")
+func updateBottle(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: updateBottle")
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 	for index, item := range bottles {
