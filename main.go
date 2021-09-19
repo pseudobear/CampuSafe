@@ -1,15 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 type Bottle struct {
@@ -35,6 +39,7 @@ var bottles []Bottle
 var incidents []Incident
 var bottlesIdCounter int
 var incidentsIdCounter int
+var db *gorm.DB
 
 func homePage(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Welcome to the HomePage!")
@@ -44,7 +49,8 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func returnAllBottles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: returnAllArticles")
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(bottles)
+	tx := db.Exec("SELECT session_user, current_database();")
+	json.NewEncoder(w).Encode(tx)
 }
 
 func returnBottleById(w http.ResponseWriter, r *http.Request) {
@@ -193,6 +199,22 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
+	fmt.Println("starting to connect to cockroachdb cluster...")
+	// Connect to the "ocean" database as the "kaiser" user.
+	// Read in connection string
+	scanner := bufio.NewScanner(os.Stdin)
+	log.Println("Enter a connection string: ")
+	scanner.Scan()
+	connstring := os.ExpandEnv(scanner.Text())
+
+	// Connect to the "ocean" database
+	var err error
+	db, err = gorm.Open(postgres.Open(connstring), &gorm.Config{})
+	if err != nil {
+		log.Fatal("error configuring the database: ", err)
+	}
+
+	log.Println("Hey! You successfully connected to your CockroachDB cluster.")
 	fmt.Println("started localhost @ 127.0.0.1:10000")
 	bottlesIdCounter = 2
 	bottles = []Bottle{
