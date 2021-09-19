@@ -236,7 +236,7 @@ func returnMessageById(w http.ResponseWriter, r *http.Request) {
 
 func getTags(w http.ResponseWriter, r *http.Request) {
   fmt.Println("Endpoint Hit: getTags")
-  w.Header().set("Content-Type", "application/json")
+  w.Header().Set("Content-Type", "application/json")
   params := mux.Vars(r)
 
   var tags []Bottle_Tag
@@ -253,7 +253,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/bottles/{id}", returnBottleById).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
-  myRouter.HandleFunc("/bottles/getTag/{clientid}", returnTags).Methods("GET")
+  myRouter.HandleFunc("/bottles/getTag/{clientid}", getTags).Methods("GET")
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
