@@ -57,6 +57,7 @@ type Message struct {
 // to simulate a database
 var bottlesIdCounter int
 var incidentsIdCounter int
+var messagesIdCounter int
 var db *gorm.DB
 
 func homePage(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +108,8 @@ func returnRandomBottle(w http.ResponseWriter, r *http.Request) {
 	min := 0
 	max := len(matchingBottles)
 	if max == min {
-		json.NewEncoder(w).Encode(returnSpecificBottle("0"))
+    w.WriteHeader(http.StatusNotFound)
+    w.Write([]byte("404 - bro there's nothing there"))
 		return
 	}
 
@@ -122,15 +124,6 @@ func stringExists(a string, list []string) bool {
 		}
 	}
 	return false
-}
-
-func returnSpecificBottle(id string) Bottle {
-	for _, item := range bottles {
-		if item.Id == id {
-			return item
-		}
-	}
-	return Bottle{}
 }
 
 func deleteBottleById(w http.ResponseWriter, r *http.Request) {
@@ -157,10 +150,13 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 func loginAuth(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
+
+  good := `{"Id": 1}`
+  json.NewEncoder(w).Encode(good);
 }
 
 func createIncidentReport(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Endpoint Hit: createBottle")
+	fmt.Println("Endpoint Hit: createIncidentReport")
 	w.Header().Set("Content-Type", "application/json")
 	var incident Incident
 	params := mux.Vars(r)
@@ -173,14 +169,87 @@ func createIncidentReport(w http.ResponseWriter, r *http.Request) {
 	} else {
 		incident.Time = time.Now().String()
 	}
-
 	incident.Id = strconv.Itoa(incidentsIdCounter)
 	incidentsIdCounter++
 
-	incidents = append(incidents, incident)
+  db.Exec("USE ocean;")
+  db.Exec("INSERT INTO incident (Id,ClientId,Location,Content,Time) VALUES (?,?,?,?,?);", incident.Id, incident.ClientId, incident.Location, incident.Content, incident.Time)
+
 	json.NewEncoder(w).Encode(incident)
 }
 
+func returnAllIncidents(w http.ResponseWriter, r *http.Request) {
+  fmt.Println("Endpoint Hit: returnAllIncidents")
+  w.Header().Set("Content-Type", "application/json")
+  var incidents []Incident
+  db.Exec("USE ocean:")
+  db.Raw("SELECT * FROM incident;").Scan(&incidents)
+
+  json.NewEncoder(w).Encode(incidents)
+}
+
+func returnIncidentById(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: returnIncidentById")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+  var incident Incident
+	db.Exec("USE ocean;")
+  db.Raw("SELECT * FROM incident WHERE id=?;", params["id"]).Scan(&incident);
+	json.NewEncoder(w).Encode(incident)
+}
+
+func createMessage(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: createMessage")
+	w.Header().Set("Content-Type", "application/json")
+	var message Message
+	json.NewDecoder(r.Body).Decode(&message)
+  params := mux.Vars(r)
+	givenTime, ok := params["time"]
+	if ok {
+		message.Time = givenTime
+	} else {
+		message.Time = time.Now().String()
+	}
+	message.Id = strconv.Itoa(messagesIdCounter)
+	messagesIdCounter++
+  db.Exec("USE ocean;")
+  db.Exec("INSERT INTO message (Id,ClientId,Time,Content,ToClientId) VALUES (?,?,?,?,?);", message.Id, message.ClientId, message.Time, message.Content, message.ToClientId)
+	json.NewEncoder(w).Encode(message)
+}
+
+func returnMessagesByClientId(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: returnMessageByClientId")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+  var messages []Message
+	db.Exec("USE ocean;")
+  db.Raw("SELECT * FROM message WHERE clientid=?;", params["clientid"]).Scan(&messages);
+  json.NewEncoder(w).Encode(messages)
+}
+
+func returnMessagesByToClientId(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: returnMessageByClientToId")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+  var messages []Message
+	db.Exec("USE ocean;")
+  db.Raw("SELECT * FROM message WHERE clienttoid=?;", params["clienttoid"]).Scan(&messages);
+  json.NewEncoder(w).Encode(messages)
+}
+
+func returnMessageById(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: returnMessageById")
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
+
+  var message Message
+	db.Exec("USE ocean;")
+  db.Raw("SELECT * FROM message WHERE id=?;", params["id"]).Scan(&message);
+  json.NewEncoder(w).Encode(message)
+}
 func handleRequests() {
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -192,7 +261,14 @@ func handleRequests() {
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
-	myRouter.HandleFunc("/incident", createIncidentReport).Methods("POST")
+	myRouter.HandleFunc("/incidents", createIncidentReport).Methods("POST")
+  myRouter.HandleFunc("/incidents/all", returnAllIncidents).Methods("GET") 
+  myRouter.HandleFunc("/incidents/{id}", returnIncidentById).Methods("GET") 
+  myRouter.HandleFunc("/messages", createMessage).Methods("POST")
+  myRouter.HandleFunc("/messages/{id}", returnMessageById).Methods("POST")
+  myRouter.HandleFunc("/messages/{clientid}", returnMessagesByClientId).Methods("POST")
+  myRouter.HandleFunc("/messages/{toclientid}", returnMessagesByToClientId).Methods("POST")
+
 	// finally, instead of passing in nil, we want
 	// to pass in our newly created router as the second
 	// argument
