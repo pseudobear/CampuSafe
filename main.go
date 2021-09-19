@@ -241,7 +241,7 @@ func getTags(w http.ResponseWriter, r *http.Request) {
 
   var tags []Bottle_Tag
   db.Exec("USE ocean;")
-  db.Raw("SELECT * FROM bottle_tag WHERE clientid=?;", params["clientid"]).Scan(&tags)
+  db.Raw("SELECT * FROM bottle_tag WHERE bottleid=?;", params["bottleid"]).Scan(&tags)
   json.NewEncoder(w).Encode(tags)
 }
 func handleRequests() {
@@ -253,7 +253,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/bottles/{id}", returnBottleById).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
-  myRouter.HandleFunc("/bottles/getTag/{clientid}", getTags).Methods("GET")
+  myRouter.HandleFunc("/bottles/getTag/{bottleid}", getTags).Methods("GET")
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
