@@ -236,7 +236,7 @@ func returnMessagesByToClientId(w http.ResponseWriter, r *http.Request) {
 
   var messages []Message
 	db.Exec("USE ocean;")
-  db.Raw("SELECT * FROM message WHERE clienttoid=?;", params["clienttoid"]).Scan(&messages);
+  db.Raw("SELECT * FROM message WHERE toclientid=?;", params["clienttoid"]).Scan(&messages);
   json.NewEncoder(w).Encode(messages)
 }
 
