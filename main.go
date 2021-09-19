@@ -135,6 +135,7 @@ func deleteBottleById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
+  db.Exec("USE ocean;")
   db.Delete(&bottle{}, params["id"])
 }
 
