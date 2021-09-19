@@ -265,9 +265,9 @@ func handleRequests() {
   myRouter.HandleFunc("/incidents/all", returnAllIncidents).Methods("GET") 
   myRouter.HandleFunc("/incidents/{id}", returnIncidentById).Methods("GET") 
   myRouter.HandleFunc("/messages", createMessage).Methods("POST")
-  myRouter.HandleFunc("/messages/{id}", returnMessageById).Methods("POST")
-  myRouter.HandleFunc("/messages/{clientid}", returnMessagesByClientId).Methods("POST")
-  myRouter.HandleFunc("/messages/{toclientid}", returnMessagesByToClientId).Methods("POST")
+  myRouter.HandleFunc("/messages/{id}", returnMessageById).Methods("GET")
+  myRouter.HandleFunc("/messages/{clientid}", returnMessagesByClientId).Methods("GET")
+  myRouter.HandleFunc("/messages/{toclientid}", returnMessagesByToClientId).Methods("GET")
 
 	// finally, instead of passing in nil, we want
 	// to pass in our newly created router as the second
