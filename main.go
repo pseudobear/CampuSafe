@@ -16,20 +16,39 @@ import (
 	"gorm.io/gorm"
 )
 
-type Bottle struct {
-	Id      string   `json:"Id"`
-	Title   string   `json:"Title"`
-	Tag     []string `json:"Tag"`
-	Content string   `json:"Content"`
-}
-
-type Incident struct {
-	Account  string `json:"Account"`
+type Client struct {
 	Id       string `json:"Id"`
-	Time     string `json:"Time"`
-	Type     string `json:"Type"`
-	Location string `json:"Location"`
+  Username string `json:"Username"`
+  Email    string `json:"Email"`
+  Password string `json:"Password"`
+}
+type Bottle struct {
+	Id      string  `json:"Id"`
+	Title   string  `json:"Title"`
+	Content string  `json:"Content"`
+}
+type Bottle_Tag struct {
+  Id       string `json:"Id"`
+  BottleId string `json:"BottleId"`
+  Tag      string `json:"tag"`
+type Incident struct {
+	Id       string `json:"Id"`
+  ClientId string `json:"ClientId"`
 	Content  string `json:"Content"`
+	Location string `json:"Location"`
+	Time     string `json:"Time"`
+}
+type Incident_Type struct {
+  Id         string `json:"Id"`
+  IncidentId string `json:"IncidentId"`
+  Type       string `json:"Type"`
+}
+type Message struct {
+  Id         string `json:"Id"`
+  ClientId   string `json:"ClientId"`
+  Time       string `json:"Time"` 
+  Content    string `json:"Content"`
+  ToClientId string `json:"ToClientId"`
 }
 
 // let's declare a global Articles array
@@ -49,7 +68,9 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 func returnAllBottles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: returnAllArticles")
 	w.Header().Set("Content-Type", "application/json")
-	tx := db.Exec("SELECT session_user, current_database();")
+
+	db.Exec("USE ocean;")
+  db.Raw
 	json.NewEncoder(w).Encode(tx)
 }
 
@@ -216,10 +237,6 @@ func main() {
 
 	log.Println("Hey! You successfully connected to your CockroachDB cluster.")
 	fmt.Println("started localhost @ 127.0.0.1:10000")
-	bottlesIdCounter = 2
-	bottles = []Bottle{
-		Bottle{Id: "0", Title: "example", Tag: []string{"10"}, Content: "hello world"},
-		Bottle{Id: "1", Title: "example", Tag: []string{"10", "20"}, Content: "hello world!"},
-	}
+	bottlesIdCounter = 1
 	handleRequests()
 }
