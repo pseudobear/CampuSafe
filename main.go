@@ -193,6 +193,7 @@ func handleRequests() {
 
 func main() {
 	fmt.Println("Rest API v2.0 - Mux Routers")
+	fmt.Println("started localhost @ 127.0.0.1:10000")
 	bottlesIdCounter = 2
 	bottles = []Bottle{
 		Bottle{Id: "0", Title: "example", Tag: []string{"10"}, Content: "hello world"},
