@@ -230,13 +230,13 @@ func returnMessagesByClientId(w http.ResponseWriter, r *http.Request) {
 }
 
 func returnMessagesByToClientId(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Endpoint Hit: returnMessageByClientToId")
+	fmt.Println("Endpoint Hit: returnMessageByToClientId")
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
   var messages []Message
 	db.Exec("USE ocean;")
-  db.Raw("SELECT * FROM message WHERE toclientid=?;", params["clienttoid"]).Scan(&messages);
+  db.Raw("SELECT * FROM message WHERE toclientid=?;", params["toclientid"]).Scan(&messages);
   json.NewEncoder(w).Encode(messages)
 }
 
