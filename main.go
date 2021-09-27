@@ -31,6 +31,7 @@ type Bottle_Tag struct {
   Id       string `json:"Id"`
   BottleId string `json:"BottleId"`
   Tag      string `json:"tag"`
+}
 type Incident struct {
 	Id       string `json:"Id"`
   ClientId string `json:"ClientId"`
@@ -69,9 +70,10 @@ func returnAllBottles(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: returnAllArticles")
 	w.Header().Set("Content-Type", "application/json")
 
+  var bottles []Bottle
 	db.Exec("USE ocean;")
-  db.Raw
-	json.NewEncoder(w).Encode(tx)
+  db.Raw("SELECT * FROM bottle;").Scan(&bottles);
+	json.NewEncoder(w).Encode(bottles)
 }
 
 func returnBottleById(w http.ResponseWriter, r *http.Request) {
@@ -89,12 +91,11 @@ func returnRandomBottle(w http.ResponseWriter, r *http.Request) {
 
 	matchingBottles := []Bottle{}
 	val, ok := params["tag"]
+  db.Exec("USE ocean;")
 	if ok {
-		for _, item := range bottles {
-			if stringExists(val, item.Tag) {
-				matchingBottles = append(matchingBottles, item)
-			}
-		}
+    var suitableBottles []Bottle
+    db.Raw("SELECT * FROM bottle WHERE Id IN (SELECT bottleid FROM bottle_tag WHERE tag=?)", val).Scan(&suitableBottles)
+    matchingBottles = append(matchingBottles, suitableBottles...)
 	} else {
 		json.NewEncoder(w).Encode(bottles[rand.Intn(len(bottles)+1)])
 		return
