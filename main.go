@@ -135,13 +135,7 @@ func deleteBottleById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
-	for index, item := range bottles {
-		if item.Id == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			bottles = append(bottles[:index], bottles[index+1:]...)
-			return
-		}
-	}
+  db.Delete(&bottle{}, params["id"])
 }
 
 func createBottle(w http.ResponseWriter, r *http.Request) {
@@ -151,7 +145,8 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	json.NewDecoder(r.Body).Decode(&bottle)
 	bottle.Id = strconv.Itoa(bottlesIdCounter)
 	bottlesIdCounter++
-	bottles = append(bottles, bottle)
+  db.Exec("USE ocean;")
+  db.create(&bottle)
 	json.NewEncoder(w).Encode(bottle)
 }
 
