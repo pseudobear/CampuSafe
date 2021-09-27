@@ -55,8 +55,6 @@ type Message struct {
 // let's declare a global Articles array
 // that we can then populate in our main function
 // to simulate a database
-var bottles []Bottle
-var incidents []Incident
 var bottlesIdCounter int
 var incidentsIdCounter int
 var db *gorm.DB
@@ -81,7 +79,10 @@ func returnBottleById(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
 
-	json.NewEncoder(w).Encode(returnSpecificBottle(params["id"]))
+  var bottle Bottle
+	db.Exec("USE ocean;")
+  db.Raw("SELECT * FROM bottle WHERE id=?;", params["id"]).Scan(&bottle);
+	json.NewEncoder(w).Encode(bottle)
 }
 
 func returnRandomBottle(w http.ResponseWriter, r *http.Request) {
@@ -94,9 +95,11 @@ func returnRandomBottle(w http.ResponseWriter, r *http.Request) {
   db.Exec("USE ocean;")
 	if ok {
     var suitableBottles []Bottle
-    db.Raw("SELECT * FROM bottle WHERE Id IN (SELECT bottleid FROM bottle_tag WHERE tag=?)", val).Scan(&suitableBottles)
+    db.Raw("SELECT * FROM bottle WHERE Id IN (SELECT bottleid FROM bottle_tag WHERE tag=?);", val).Scan(&suitableBottles)
     matchingBottles = append(matchingBottles, suitableBottles...)
 	} else {
+    var bottles []Bottle
+    db.Raw("SELECT * FROM bottle;").Scan(&bottles)
 		json.NewEncoder(w).Encode(bottles[rand.Intn(len(bottles)+1)])
 		return
 	}
@@ -136,7 +139,7 @@ func deleteBottleById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
   db.Exec("USE ocean;")
-  db.Exec("DELETE FROM bottle WHERE id=?", params["id"])
+  db.Exec("DELETE FROM bottle WHERE id=?;", params["id"])
 }
 
 func createBottle(w http.ResponseWriter, r *http.Request) {
@@ -147,25 +150,7 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	bottle.Id = strconv.Itoa(bottlesIdCounter)
 	bottlesIdCounter++
   db.Exec("USE ocean;")
-  db.Exec("INSERT INTO bottle (Id,Title,Content) VALUES (?,?,?)", bottle.Id, bottle.Title, bottle.Content)
-	json.NewEncoder(w).Encode(bottle)
-}
-
-func updateBottle(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("Endpoint Hit: updateBottle")
-	w.Header().Set("Content-Type", "application/json")
-	params := mux.Vars(r)
-	for index, item := range bottles {
-		if item.Id == params["id"] {
-			json.NewEncoder(w).Encode(item)
-			bottles = append(bottles[:index], bottles[index+1:]...)
-			return
-		}
-	}
-	var bottle Bottle
-	json.NewDecoder(r.Body).Decode(&bottle)
-	bottle.Id = params["id"]
-	bottles = append(bottles, bottle)
+  db.Exec("INSERT INTO bottle (Id,Title,Content) VALUES (?,?,?);", bottle.Id, bottle.Title, bottle.Content)
 	json.NewEncoder(w).Encode(bottle)
 }
 
@@ -208,7 +193,6 @@ func handleRequests() {
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
 	myRouter.HandleFunc("/incident", createIncidentReport).Methods("POST")
-	myRouter.HandleFunc("/bottles/{id}", updateBottle).Methods("PUT")
 	// finally, instead of passing in nil, we want
 	// to pass in our newly created router as the second
 	// argument
