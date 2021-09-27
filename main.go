@@ -244,6 +244,17 @@ func getTags(w http.ResponseWriter, r *http.Request) {
   db.Raw("SELECT * FROM bottle_tag WHERE bottleid=?;", params["bottleid"]).Scan(&tags)
   json.NewEncoder(w).Encode(tags)
 }
+func assignTag(w http.ResponseWriter, r *http.Request) {
+  fmt.Println("Endpoint Hit: assignTags")
+  w.Header().Set("Content-Type", "application/json")
+  var tag Bottle_Tag
+	json.NewDecoder(r.Body).Decode(&tag)
+	tag.Id = strconv.Itoa(messagesIdCounter)
+	messagesIdCounter++
+  db.Exec("USE ocean;")
+  db.Raw("INSERT INTO bottle_tag (id,bottleid,tag) VALUES (?,?,?);", tag.Id, tag.BottleId, tag.Tag)
+  json.NewEncoder(w).Encode(tag)
+}
 func handleRequests() {
 	// creates a new instance of a mux router
 	myRouter := mux.NewRouter().StrictSlash(true)
@@ -254,6 +265,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/bottles/getRandom/", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
   myRouter.HandleFunc("/bottles/getTag/{bottleid}", getTags).Methods("GET")
+  myRouter.HandleFunc("/bottles/assignTag/", assignTag).Methods("POST")
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
 	myRouter.HandleFunc("/bottles", createBottle).Methods("POST")
