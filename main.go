@@ -252,7 +252,7 @@ func assignTag(w http.ResponseWriter, r *http.Request) {
 	tag.Id = strconv.Itoa(messagesIdCounter)
 	messagesIdCounter++
   db.Exec("USE ocean;")
-  db.Raw("INSERT INTO bottle_tag (id,bottleid,tag) VALUES (?,?,?);", tag.Id, tag.BottleId, tag.Tag)
+  db.Raw("INSERT INTO bottle_tag (Id,Bottleid,Tag) VALUES (?,?,?);", tag.Id, tag.BottleId, tag.Tag)
   json.NewEncoder(w).Encode(tag)
 }
 func handleRequests() {
