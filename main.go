@@ -136,7 +136,7 @@ func deleteBottleById(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
   db.Exec("USE ocean;")
-  db.Delete(&bottle{}, params["id"])
+  db.Exec("DELETE FROM bottle WHERE id=?", params["id"])
 }
 
 func createBottle(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +147,7 @@ func createBottle(w http.ResponseWriter, r *http.Request) {
 	bottle.Id = strconv.Itoa(bottlesIdCounter)
 	bottlesIdCounter++
   db.Exec("USE ocean;")
-  db.create(&bottle)
+  db.Exec("INSERT INTO bottle (Id,Title,Content) VALUES (?,?,?)", bottle.Id, bottle.Title, bottle.Content)
 	json.NewEncoder(w).Encode(bottle)
 }
 
