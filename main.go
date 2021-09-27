@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
 	"github.com/gorilla/mux"
 	"gorm.io/driver/postgres"
@@ -159,16 +158,7 @@ func createIncidentReport(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint Hit: createIncidentReport")
 	w.Header().Set("Content-Type", "application/json")
 	var incident Incident
-	params := mux.Vars(r)
-
 	json.NewDecoder(r.Body).Decode(&incident)
-
-	givenTime, ok := params["time"]
-	if ok {
-		incident.Time = givenTime
-	} else {
-		incident.Time = time.Now().String()
-	}
 	incident.Id = strconv.Itoa(incidentsIdCounter)
 	incidentsIdCounter++
 
@@ -182,7 +172,7 @@ func returnAllIncidents(w http.ResponseWriter, r *http.Request) {
   fmt.Println("Endpoint Hit: returnAllIncidents")
   w.Header().Set("Content-Type", "application/json")
   var incidents []Incident
-  db.Exec("USE ocean:")
+  db.Exec("USE ocean;")
   db.Raw("SELECT * FROM incident;").Scan(&incidents)
 
   json.NewEncoder(w).Encode(incidents)
@@ -204,13 +194,6 @@ func createMessage(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var message Message
 	json.NewDecoder(r.Body).Decode(&message)
-  params := mux.Vars(r)
-	givenTime, ok := params["time"]
-	if ok {
-		message.Time = givenTime
-	} else {
-		message.Time = time.Now().String()
-	}
 	message.Id = strconv.Itoa(messagesIdCounter)
 	messagesIdCounter++
   db.Exec("USE ocean;")
@@ -257,6 +240,7 @@ func handleRequests() {
 	myRouter.HandleFunc("/", homePage).Methods("GET")
 	myRouter.HandleFunc("/bottles/all", returnAllBottles).Methods("GET")
 	myRouter.HandleFunc("/bottles/{id}", returnBottleById).Methods("GET")
+	myRouter.HandleFunc("/bottles/getRandom/", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/bottles/getRandom/{tag}", returnRandomBottle).Methods("GET")
 	myRouter.HandleFunc("/login", loginAuth).Methods("POST")
 	myRouter.HandleFunc("/bottles/{id}", deleteBottleById).Methods("DELETE")
@@ -295,5 +279,7 @@ func main() {
 	log.Println("Hey! You successfully connected to your CockroachDB cluster.")
 	fmt.Println("started localhost @ 127.0.0.1:10000")
 	bottlesIdCounter = 1
+  incidentsIdCounter = 1
+  messagesIdCounter = 1
 	handleRequests()
 }
